@@ -7,17 +7,17 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        h2 { text-align: center; color: #333; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; }
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; border: none; color: white; font-size: 16px; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .error { color: red; margin-top: 10px; text-align: center; font-weight: bold; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #28a745; border: none; color: white; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
+        .error { color: #dc3545; margin-top: 15px; text-align: center; font-weight: bold; }
         .result-table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
-        .result-table th, .result-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .result-table th { background-color: #f2f2f2; width: 40%; }
-        .loader { text-align: center; display: none; font-style: italic; color: #666; }
+        .result-table th, .result-table td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
+        .result-table th { background-color: #f8f9fa; width: 45%; color: #333; }
+        .loader { text-align: center; display: none; font-style: italic; color: #666; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -28,27 +28,27 @@
         <label for="memberCode">Enter Member Code (ID):</label>
         <input type="text" id="memberCode" placeholder="Example: N-SHEM1230">
     </div>
-    <button onclick="getSalaryDetails()">View Details</button>
+    <button onclick="getSalaryDetails()">View Salary Details</button>
     
-    <div id="loader" class="loader">Data fetch ho raha hai, kripya intezar karein...</div>
+    <div id="loader" class="loader">Data dhoondha ja raha hai, kripya intezar karein...</div>
     <div id="errorMsg" class="error"></div>
 
     <table id="detailsTable" class="result-table">
         <thead>
             <tr>
-                <th>Field</th>
-                <th>Detail</th>
+                <th>Field Name</th>
+                <th>Your Detail</th>
             </tr>
         </thead>
         <tbody id="tableBody">
-            <!-- Data yahan dynamic insert hoga -->
+            <!-- Data yahan insert hoga -->
         </tbody>
     </table>
 </div>
 
 <script>
-    // ⚠️ APNA APPS SCRIPT WEB APP URL YAHAN PASTE KAREN
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcPJwK5nbsyj0_eoKWNK2k3Z0v-oL1_NiYq_FJPQSOwRqAjjvOlKKaKReCz9I34N6Xfw/exec"; 
+    // ⚠️ APNA NAYA APPS SCRIPT WEB APP URL YAHAN PASTE KAREN
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwnsUZmljtAk0kGkp6Z_SEbHCF_4sCInyUjvggs5S5tKaSeDdWvH64KAxooOCOCWym3/exec"; 
 
     async function getSalaryDetails() {
         const memberCode = document.getElementById('memberCode').value.trim();
@@ -72,10 +72,15 @@
         try {
             const response = await fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'text/plain' }, // CORS issue se bachne ke liye text/plain use kiya hai
+                headers: { 
+                    'Content-Type': 'text/plain' // Standard cross-origin format for Apps Script
+                },
                 body: JSON.stringify({ memberCode: memberCode })
             });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
 
             const result = await response.json();
             loader.style.display = "none";
@@ -83,8 +88,10 @@
             if(result.status === "success") {
                 table.style.display = "table";
                 for (const [key, value] of Object.entries(result.data)) {
-                    if(key.indexOf("Column_") === -1 && key.indexOf("Extra_Column_") === -1) { // Faltu headers ko skip karne ke liye
-                        const row = `<tr><th>${key}</th><td>${value !== "" ? value : '-'}</td></tr>`;
+                    // Blank headers ko print na karne ke liye validation
+                    if(key && !key.startsWith("Column_")) { 
+                        const displayValue = (value !== null && value !== undefined && value !== "") ? value : '-';
+                        const row = `<tr><th>${key}</th><td>${displayValue}</td></tr>`;
                         tableBody.innerHTML += row;
                     }
                 }
@@ -94,8 +101,8 @@
 
         } catch (error) {
             loader.style.display = "none";
-            errorMsg.innerText = "Server se connect nahi ho paya. URL check karein.";
-            console.error(error);
+            errorMsg.innerText = "Connection Error! Check karein ki Web App 'Anyone' par deploy hai ya nahi.";
+            console.error("Portal Error: ", error);
         }
     }
 </script>
