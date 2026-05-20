@@ -1,3 +1,4 @@
+//const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuIcB1iz3SkMsJBxdyetVa5XJMzGXpVYRHjA-0wugGKCDm1ux-aDH45c31m3CQjz_1/exec"; 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,14 +42,14 @@
             </tr>
         </thead>
         <tbody id="tableBody">
-            <!-- Data yahan insert hoga -->
+            <!-- Data yahan dynamic load hoga -->
         </tbody>
     </table>
 </div>
 
 <script>
-    // ⚠️ APNA NAYA APPS SCRIPT WEB APP URL YAHAN PASTE KAREN
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwnsUZmljtAk0kGkp6Z_SEbHCF_4sCInyUjvggs5S5tKaSeDdWvH64KAxooOCOCWym3/exec"; 
+    // ⚠️ APNA NEW DEPLOYED WEB APP URL YAHAN PASTE KAREN
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuIcB1iz3SkMsJBxdyetVa5XJMzGXpVYRHjA-0wugGKCDm1ux-aDH45c31m3CQjz_1/exec"; 
 
     async function getSalaryDetails() {
         const memberCode = document.getElementById('memberCode').value.trim();
@@ -57,7 +58,6 @@
         const tableBody = document.getElementById('tableBody');
         const loader = document.getElementById('loader');
 
-        // Reset views
         errorMsg.innerText = "";
         table.style.display = "none";
         tableBody.innerHTML = "";
@@ -73,14 +73,10 @@
             const response = await fetch(WEB_APP_URL, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'text/plain' // Standard cross-origin format for Apps Script
+                    'Content-Type': 'text/plain' // Apps Script ke liye standard setup
                 },
                 body: JSON.stringify({ memberCode: memberCode })
             });
-
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
 
             const result = await response.json();
             loader.style.display = "none";
@@ -88,7 +84,7 @@
             if(result.status === "success") {
                 table.style.display = "table";
                 for (const [key, value] of Object.entries(result.data)) {
-                    // Blank headers ko print na karne ke liye validation
+                    // Faltu un-named columns filter karne ke liye
                     if(key && !key.startsWith("Column_")) { 
                         const displayValue = (value !== null && value !== undefined && value !== "") ? value : '-';
                         const row = `<tr><th>${key}</th><td>${displayValue}</td></tr>`;
@@ -101,10 +97,11 @@
 
         } catch (error) {
             loader.style.display = "none";
-            errorMsg.innerText = "Connection Error! Check karein ki Web App 'Anyone' par deploy hai ya nahi.";
-            console.error("Portal Error: ", error);
+            errorMsg.innerText = "Connection Error! Ek baar check karein ki naya URL sahi hai ya nahi.";
+            console.error("Error details:", error);
         }
     }
 </script>
 </body>
 </html>
+
