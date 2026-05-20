@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Salary Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; border: none; color: white; font-size: 16px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .error { color: red; margin-top: 10px; text-align: center; font-weight: bold; }
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
+        .result-table th, .result-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .result-table th { background-color: #f2f2f2; width: 40%; }
+        .loader { text-align: center; display: none; font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Salary Detail Portal</h2>
+    <div class="form-group">
+        <label for="memberCode">Enter Member Code (ID):</label>
+        <input type="text" id="memberCode" placeholder="Example: N-SHEM1230">
+    </div>
+    <button onclick="getSalaryDetails()">View Details</button>
+    
+    <div id="loader" class="loader">Data fetch ho raha hai, kripya intezar karein...</div>
+    <div id="errorMsg" class="error"></div>
+
+    <table id="detailsTable" class="result-table">
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data yahan dynamic insert hoga -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // ⚠️ APNA APPS SCRIPT WEB APP URL YAHAN PASTE KAREN
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuIcB1iz3SkMsJBxdyetVa5XJMzGXpVYRHjA-0wugGKCDm1ux-aDH45c31m3CQjz_1/exec"; 
+
+    async function getSalaryDetails() {
+        const memberCode = document.getElementById('memberCode').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const table = document.getElementById('detailsTable');
+        const tableBody = document.getElementById('tableBody');
+        const loader = document.getElementById('loader');
+
+        // Reset views
+        errorMsg.innerText = "";
+        table.style.display = "none";
+        tableBody.innerHTML = "";
+        
+        if(!memberCode) {
+            errorMsg.innerText = "Kripya Member Code enter karein!";
+            return;
+        }
+
+        loader.style.display = "block";
+
+        try {
+            const response = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' }, // CORS issue se bachne ke liye text/plain use kiya hai
+                body: JSON.stringify({ memberCode: memberCode })
+            });
+
+            const result = await response.json();
+            loader.style.display = "none";
+
+            if(result.status === "success") {
+                table.style.display = "table";
+                for (const [key, value] of Object.entries(result.data)) {
+                    if(key.indexOf("Column_") === -1 && key.indexOf("Extra_Column_") === -1) { // Faltu headers ko skip karne ke liye
+                        const row = `<tr><th>${key}</th><td>${value !== "" ? value : '-'}</td></tr>`;
+                        tableBody.innerHTML += row;
+                    }
+                }
+            } else {
+                errorMsg.innerText = result.message;
+            }
+
+        } catch (error) {
+            loader.style.display = "none";
+            errorMsg.innerText = "Server se connect nahi ho paya. URL check karein.";
+            console.error(error);
+        }
+    }
+</script>
+</body>
+</html>
